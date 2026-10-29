@@ -1,0 +1,136 @@
+name: 编译并发布(APP + 固件)
+
+# 手动触发:填版本号(如 v1.1.0),可选指定两个仓库的分支/标签。
+# 产物:1) 编入 GitHub Pages 的下载页  2) 挂到 IndieForge-Home Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release 版本号(如 v1.1.0)"
+        required: true
+        default: "v0.1.0"
+      app_ref:
+        description: "IndieForge-APP 分支/标签"
+        required: true
+        default: "main"
+      fw_ref:
+        description: "IndieForge-Passport 分支/标签"
+        required: true
+        default: "feature/indieforge-passport"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: indieforge-release
+  cancel-in-progress: false
+
+jobs:
+  build-app:
+    name: 编译 Flutter APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出 APP 私有仓库
+        uses: actions/checkout@v4
+        with:
+          repository: Seeking-Happiness-for-People-Software/IndieForge-APP
+          ref: ${{ inputs.app_ref }}
+          token: ${{ secrets.PASSPORT_GH_TOKEN }}
+
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: 构建 release APK
+        run: flutter build apk --release
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  build-firmware:
+    name: 编译设备固件
+    runs-on: ubuntu-latest
+    container: espressif/idf:v5.5.3
+    steps:
+      - name: 检出固件私有仓库
+        uses: actions/checkout@v4
+        with:
+          repository: Seeking-Happiness-for-People-Software/IndieForge-Passport
+          ref: ${{ inputs.fw_ref }}
+          token: ${{ secrets.PASSPORT_GH_TOKEN }}
+
+      - name: 构建并合并整包固件
+        shell: bash
+        run: |
+          . $IDF_PATH/export.sh
+          idf.py build
+          # merge-bin 生成 bootloader+分区表+app 的整包,可直接 write_flash 0x0
+          idf.py merge-bin
+          ls -l build/merged-bin.bin build/*.bin | head
+          cp build/merged-bin.bin IndieForge-Passport-full.bin
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-bin
+          path: IndieForge-Passport-full.bin
+          if-no-files-found: error
+
+  publish-release:
+    name: 发布 Release
+    runs-on: ubuntu-latest
+    needs: [build-app, build-firmware]
+    steps:
+      - name: 检出站点仓库
+        uses: actions/checkout@v4
+
+      - name: 下载编译产物
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: 整理下载区
+        run: |
+          mkdir -p site/downloads
+          cp artifacts/app-apk/app-release.apk site/downloads/IndieForge-APP.apk
+          cp artifacts/firmware-bin/IndieForge-Passport-full.bin site/downloads/IndieForge-Passport-full.bin
+          cp -r index.html site/
+          ls -lR site
+
+      - name: 创建 GitHub Release(附件为 APK + 整包固件)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: IndieForge ${{ inputs.version }}
+          body: |
+            APP 分支 `${{ inputs.app_ref }}` / 固件分支 `${{ inputs.fw_ref }}` 由 CI 自动编译。
+            固件刷写:`esptool.py --chip esp32c3 write_flash 0x0 IndieForge-Passport-full.bin`
+          files: |
+            site/downloads/IndieForge-APP.apk
+            site/downloads/IndieForge-Passport-full.bin
+          make_latest: true
+
+      - name: 上传 Pages 站点
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy-pages:
+    name: 部署 GitHub Pages
+    runs-on: ubuntu-latest
+    needs: publish-release
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 部署
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IndieForge · 为人民谋幸福软件工作室</title>
+<style>
+  :root {
+    --grad: linear-gradient(135deg, #4f6ef7 0%, #7b5cf0 55%, #a855f7 100%);
+    --card: #171a2b;
+    --text: #e8eaf6;
+    --muted: #9aa3c7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0d0f1c; color: var(--text); min-height: 100vh;
+  }
+  .hero {
+    background: var(--grad); text-align: center; padding: 72px 20px 56px;
+  }
+  .hero h1 { font-size: 2.4rem; letter-spacing: .04em; }
+  .hero p { margin-top: 14px; font-size: 1.05rem; opacity: .92; }
+  .cards {
+    display: flex; flex-wrap: wrap; gap: 28px; justify-content: center;
+    max-width: 980px; margin: -32px auto 0; padding: 0 20px 48px;
+  }
+  .card {
+    flex: 1 1 380px; max-width: 460px; background: var(--card);
+    border: 1px solid #262b45; border-radius: 18px; padding: 30px 28px;
+  }
+  .card h2 { font-size: 1.35rem; margin-bottom: 6px; }
+  .card .sub { color: var(--muted); font-size: .92rem; margin-bottom: 18px; }
+  .card ul { list-style: none; margin-bottom: 22px; }
+  .card li { padding: 5px 0; color: #c6cbe8; font-size: .95rem; }
+  .card li::before { content: "✦ "; color: #8b7dff; }
+  .btn {
+    display: inline-block; padding: 11px 22px; border-radius: 12px;
+    background: var(--grad); color: #fff; text-decoration: none;
+    font-weight: 600; margin-right: 10px; margin-top: 6px;
+  }
+  .btn.ghost { background: transparent; border: 1px solid #3a4170; color: #b9c0e8; }
+  .flash {
+    margin: 34px auto 0; max-width: 940px; padding: 18px 24px;
+    background: #12152397; border: 1px dashed #333a5e; border-radius: 12px;
+    color: var(--muted); font-size: .9rem; line-height: 1.8;
+  }
+  .flash code { color: #a5b4fc; font-family: ui-monospace, Menlo, monospace; }
+  footer {
+    text-align: center; padding: 40px 20px 48px; color: var(--muted); font-size: .88rem;
+  }
+  footer .slogan { margin-bottom: 8px; color: #c9cef2; }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <h1>IndieForge</h1>
+    <p>独立开发者工坊 · 工牌设备 + 多端应用 · 为人民谋幸福软件工作室</p>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <h2>IndieForge 应用</h2>
+      <p class="sub">Flutter 多端应用（Android / iOS / macOS）</p>
+      <ul>
+        <li>项目 / 版本 / 收支 / 投资全记录</li>
+        <li>看板、问卷、AI 伙伴</li>
+        <li>工牌设备 BLE 配对与自动同步</li>
+      </ul>
+      <a class="btn" href="downloads/IndieForge-APP.apk" download>下载 Android APK</a>
+      <a class="btn ghost" href="https://github.com/Seeking-Happiness-for-People-Software/IndieForge-APP">源码仓库</a>
+    </div>
+
+    <div class="card">
+      <h2>IndieForge 工牌固件</h2>
+      <p class="sub">ESP32-C3 · 240×320 圆屏 · BLE 同步</p>
+      <ul>
+        <li>工牌 / AI 伙伴 / 专注 / 收入 / 连续天数 五页面</li>
+        <li>按键翻页，手机下发徽标与照片</li>
+        <li>整包固件，串口一键刷写</li>
+      </ul>
+      <a class="btn" href="downloads/IndieForge-Passport-full.bin" download>下载固件 full.bin</a>
+      <a class="btn ghost" href="https://github.com/Seeking-Happiness-for-People-Software/IndieForge-Passport">源码仓库</a>
+    </div>
+  </div>
+
+  <div class="flash">
+    固件刷写（整包从 0x0 写入，含 bootloader + 分区表 + 应用）：
+    <br><code>esptool.py --chip esp32c3 write_flash 0x0 IndieForge-Passport-full.bin</code>
+    <br>历史版本见 <a href="https://github.com/Seeking-Happiness-for-People-Software/IndieForge-Home/releases" style="color:#a5b4fc">Releases</a>；固件与 APK 由 CI 自动编译发布。
+  </div>
+
+  <footer>
+    <div class="slogan">理想主义的花终将会插满整个世界。</div>
+    © 为人民谋幸福软件工作室
+  </footer>
+</body>
+</html>
