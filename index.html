@@ -77,7 +77,7 @@
       <ul>
         <li>工牌 / AI 伙伴 / 专注 / 收入 / 连续天数 五页面</li>
         <li>按键翻页，手机下发徽标与照片</li>
-        <li>整包固件，串口一键刷写</li>
+        <li>支持 APP 内 OTA 升级，也支持串口整包刷写</li>
       </ul>
       <a class="btn" href="downloads/IndieForge-Passport-full.bin" download>下载固件 full.bin</a>
       <a class="btn ghost" href="https://github.com/Seeking-Happiness-for-People-Software/IndieForge-Passport">源码仓库</a>
@@ -85,7 +85,8 @@
   </div>
 
   <div class="flash">
-    固件刷写（整包从 0x0 写入，含 bootloader + 分区表 + 应用）：
+    固件 OTA（推荐）：IndieForge APP → 设置 → 设备 → 固件更新，自动从本页 Releases 下载 <code>IndieForge-Passport-app.bin</code> 并经 BLE 推送到设备，重启即生效；可在设置中选择是否检查预发行版。
+    <br>固件有线刷写（整包从 0x0 写入，含 bootloader + 分区表 + 应用）：
     <br><code>esptool.py --chip esp32c3 write_flash 0x0 IndieForge-Passport-full.bin</code>
     <br>历史版本见 <a href="https://github.com/Seeking-Happiness-for-People-Software/IndieForge-Home/releases" style="color:#a5b4fc">Releases</a>；固件与 APK 由 CI 自动编译发布。
   </div>
