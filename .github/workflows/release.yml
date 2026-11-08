@@ -54,6 +54,26 @@ jobs:
           channel: stable
           cache: true
 
+      # 签名文件不在仓库里,从 Secrets 还原;缺任何一项都直接失败,避免
+      # Gradle 里 `null as String` 崩成看不懂的错。
+      - name: 写入 Android 签名配置
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          for v in KEYSTORE_BASE64 STORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            [ -n "${!v}" ] || { echo "缺少 Secrets: $v"; exit 1; }
+          done
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > android/release-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=$STORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=release-keystore.jks
+          EOF
+
       - name: 构建 release APK(注入版本号)
         env:
           RAW_VERSION: ${{ inputs.version }}
